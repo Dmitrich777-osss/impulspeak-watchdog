@@ -1,0 +1,32 @@
+name: watchdog
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Адрес для проверки (для теста; по умолчанию сайт школы)"
+        required: false
+        default: "https://impulspeak.com/"
+
+# Один запуск за раз: состояние хранится в status.txt, гонки нам не нужны.
+concurrency:
+  group: watchdog
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Проверка сайта
+        env:
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT: ${{ secrets.TG_CHAT }}
+          CHECK_URL: ${{ github.event.inputs.url }}
+        run: bash check.sh
